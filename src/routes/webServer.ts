@@ -36,9 +36,9 @@ userRoutes(app);
 export default http.listen(PORT, async () => {
   console.log(`Server runs on ${PORT}`);
 
-  const res = await api.fetchTransactions();
+  api.fetchWallets(wallets, TransferEventModel, (res) => {});
 
-  console.log(res.data);
+  //await doc.save();
 
   // doc = await event.save();
 
