@@ -1,59 +1,52 @@
-import * as express from 'express'
-import * as mongoose from 'mongoose'
-import { Server, Socket } from "socket.io"
-import userRoutes from './userRoutes/userRoutes'
-import middleware from './serverMiddleware'
-import websocket from '../websocket/websocket'
-import { MONGO_URI, PORT } from '../config/keys'
-import Organization from '../models/organization/organization'
-import Lecturer from '../models/course/lecturer'
-import InitColman from '../temp/initColman'
-import Episode from '../models/course/episode'
-import courseRoutes from './userRoutes/courseRoutes'
-import { toObjectId } from '../tools/string'
-import ILecturer from '../models/course/lecturer'
-import Course from '../models/course/course'
-const app = express()
+import * as express from "express";
+import * as mongoose from "mongoose";
+import { Server, Socket } from "socket.io";
+import userRoutes from "./userRoutes/courseRoutes";
+import middleware from "./serverMiddleware";
+import websocket from "../websocket/websocket";
+import { MONGO_URI, PORT, wallets } from "../config/keys";
+
+import TransferEventModel from "../models/course/interfaces/TransferEvent";
+
+import Scrapper from "../services/Scrapper";
+
+const apikey = "7SQ3B3IQHGIJYM8MSDM7IVH98XJNG3I9VQ";
+const contractAddress = "0x8cf8238abf7b933Bf8BB5Ea2C7E4Be101c11de2A";
+
+const api = new Scrapper(apikey, contractAddress);
+
+const getTokenPrice = `https://api.pancakeswap.info/api/v2/tokens/${contractAddress}`;
+
+const app = express();
 let http = require("http").Server(app);
-const io = new Server(http, {})
-
-middleware(app)
-
-io.attach(http)
-io.on('connection', (socket: Socket) => websocket(socket))
+const io = new Server(http, {});
 
 mongoose.connect(MONGO_URI, { useNewUrlParser: true }, (err: any) => {
-    if (err) console.log('Error on MongoDB connection', err)
-    else console.log('Connected to MongoDB')
-})
+  if (err) console.log("Error on MongoDB connection", err);
+  else console.log("Connected to MongoDB");
+});
 
-userRoutes(app)
-export default http.listen(PORT, () => {
-    console.log(`Server runs on ${PORT}`)
-})
+middleware(app);
 
-//Organization.find({}).exec().then(r => console.log(r))
-//Lecturer.find({}).exec().then(r => console.log(r))
-// InitColman(toObjectId('60d051cb36e313a7eb9381dc'))
- //Course.getByOrganizationId(toObjectId('60d051cb36e313a7eb9381dc')).then(r => {
-     //console.log(r)
-//})
-// const course = Course.getByOrganizationId(toObjectId('60d051cb36e313a7eb9381dc'))
-// console.log(course)
-// //const episode = Episode.getBySeasonId(toObjectId('60d051cb36e313a7eb9381dc'))
+io.attach(http);
+io.on("connection", (socket: Socket) => websocket(socket));
 
-// const trailer = 
-//     `60ddbfd42c708f2ff5f5a99f 
-//     60ddc1425d712c33b27cf39e 
-//     60ddc2ceee01823751aa28e8
-//     60ddc494e6e3d63e58e77eb7 
-//     60ddc5b90fec814238fa0b6e 
-//     60ddc6ad451976460e6aa8dc 
-//     60ddc7a845fad549dbf49c54 
-//     60ddc93fd8ac5e4eaae625fe 
-//     60e14c834488e54c67daf897 
-//     60ddcc0e1f97f5580c309277 
-//     60ddcce49a2d3c5b5a2fb4f6`
-// .split('\n').map(n => n.trim()).map(N => toObjectId(N))
-// console.log(trailer)
-Organization.find({}).exec().then(r => console.log(r))
+userRoutes(app);
+
+export default http.listen(PORT, async () => {
+  console.log(`Server runs on ${PORT}`);
+
+  const res = await api.fetchTransactions();
+
+  console.log(res.data);
+
+  // doc = await event.save();
+
+  //console.log(doc);
+
+  //const {
+  // data: {
+  //data: { price },
+  //},
+  //} = await axios.get(getTokenPrice);
+});

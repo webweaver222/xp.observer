@@ -1,15 +1,13 @@
+import * as express from "express";
+import * as jwt from "jsonwebtoken";
+import { SECRET_KEY } from "../config/keys";
+//import { Flix } from '../services/flix'
+//import { AuthenticationService } from '../services/authenticationService'
+import { toObjectId } from "./string";
+export const failedBody = (result?: any) => ({ ok: false, result });
+export const successfulBody = (result?: any) => ({ ok: true, result });
 
-import * as express from 'express'
-import * as jwt from 'jsonwebtoken'
-import { SECRET_KEY } from '../config/keys'
-import { Flix } from '../services/flix'
-import { AuthenticationService } from '../services/authenticationService'
-import { toObjectId } from './string'
-export const failedBody = (result?: any) => ({ ok: false, result })
-export const successfulBody = (result?: any) => ({ ok: true, result })
-
-
-export const userProtectedRoutes = () => {
+/*export const userProtectedRoutes = () => {
     const ProtectedRoutes = express.Router()
     ProtectedRoutes.use((req: any, res: any, next: any) => {
         const authorizationHeader = req.headers['authorization']
@@ -36,4 +34,4 @@ export const userProtectedRoutes = () => {
         
     })
     return ProtectedRoutes
-}
+}*/
