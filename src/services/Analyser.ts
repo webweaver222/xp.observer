@@ -9,7 +9,7 @@ class Analyser {
 
   filterByCriteria(
     criteria: Object = {
-      value: 0,
+      value: 1,
     }
   ) {
     return this.data;
