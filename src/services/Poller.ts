@@ -55,6 +55,7 @@ class Poller {
     end: string = "999999999"
   ) => {
     const uri = `https://api.bscscan.com/api?module=account&action=tokentx&contractaddress=${this.contractAddress}&address=${address}&page=${page}&offset=${offset}&startblock=${start}&endblock=${end}&sort=desc&apikey=${this.apiKey}`;
+
     return axios.get<any, TokenTransferEventResponse>(uri);
   };
 
@@ -67,12 +68,12 @@ class Poller {
       const collector = collect(wallets.length)
         .timeout(timeout)
         .done((err, results) => {
-          if (err) return reject(err);
+          if (err) reject(err);
           resolve(results!);
         });
 
       const next = (i = 0) => {
-        if (i >= wallets.length) return;
+        if (i >= wallets.length || collector.finished) return;
 
         setTimeout(async () => {
           let doc = await DataMapper.findTransferEvent(wallets[i]);
@@ -88,7 +89,7 @@ class Poller {
           //const result: TokenTransferEvent[] & { hasNewTransfers: boolean } =
           //await mockFetch();
 
-          if (result.length !== 0) {
+          if (message === "OK" && status !== "0" && result.length !== 0) {
             const lastBlock = result[0].blockNumber;
 
             await DataMapper.updateTransferEvent(doc, lastBlock, wallets[i]);
@@ -98,7 +99,10 @@ class Poller {
 
             result.hasNewTransfers = doc?.block === lastBlock ? false : true;
           }
-
+          if (result.hasNewTransfers)
+            console.log(
+              `New Transfer at wallet #${wallets[i]}, block${doc?.block}`
+            );
           collector.collect(result);
           next(++i);
         }, requestFrequency);

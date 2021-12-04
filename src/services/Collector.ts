@@ -4,6 +4,7 @@ class Collector {
   count: number = 0;
   timer: NodeJS.Timeout | null = null;
   onDone?: (error?: string, results?: any[][]) => void;
+  finished: boolean = false;
 
   constructor(exprectedItems: number) {
     this.exprectedItems = exprectedItems;
@@ -22,14 +23,17 @@ class Collector {
       this.timer &&
       this.onDone
     ) {
+      clearTimeout(this.timer);
+      this.finished = true;
       this.onDone(undefined, this.results);
     }
   }
 
   timeout(time: number) {
     this.timer = setTimeout(() => {
-      this.onDone && this.onDone("Transfer fetch timed out");
+      this.finished = true;
       this.timer = null;
+      this.onDone && this.onDone("Transfer fetch timed out");
     }, time * 1000);
     return this;
   }

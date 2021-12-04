@@ -9,6 +9,8 @@ import { MONGO_URI, PORT, wallets } from "../config/keys";
 import poller from "../services/Poller";
 import analyser from "../services/Analyser";
 import { throws } from "assert";
+import { clearInterval } from "timers";
+const moment = require("moment");
 
 const apikey = "7SQ3B3IQHGIJYM8MSDM7IVH98XJNG3I9VQ";
 const contractAddress = "0x8cf8238abf7b933Bf8BB5Ea2C7E4Be101c11de2A";
@@ -33,24 +35,32 @@ io.on("connection", (socket: Socket) => websocket(socket));
 
 userRoutes(app);
 
-export default http.listen(PORT, async () => {
+export default http.listen(PORT, () => {
   console.log(`Server runs on ${PORT}`);
+  let interval: NodeJS.Timeout;
+  let p = 1;
+  const pollInterval = 61 * 1000;
+  const pollTimeout = 60;
+  //const time = Date.now();
 
-  try {
-    const time = Date.now();
-    const results = await poller(apikey, contractAddress).fetchWallets(
-      wallets,
-      60
-    );
+  const main = async () => {
+    try {
+      console.log(`Poll #${p}, ###${moment()}###`);
+      p++;
+      const results = await poller(apikey, contractAddress).fetchWallets(
+        wallets,
+        pollTimeout
+      );
+    } catch (e) {
+      console.log(e);
+      clearInterval(interval);
+      interval = setInterval(main, pollInterval);
+    }
+  };
 
-    const forNotification = analyser(results).filterByCriteria();
+  interval = setInterval(main, pollInterval);
+  //const forNotification = analyser(results).filterByCriteria();
 
-    console.log(forNotification);
-
-    //console.log(results);
-    //const t;
-    console.log(((Date.now() - time) / 1000).toString());
-  } catch (e) {
-    console.log(e);
-  }
+  //console.log(results);
+  //console.log(((Date.now() - time) / 1000).toString());
 });
