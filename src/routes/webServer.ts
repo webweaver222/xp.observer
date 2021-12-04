@@ -6,16 +6,16 @@ import middleware from "./serverMiddleware";
 import websocket from "../websocket/websocket";
 import { MONGO_URI, PORT, wallets } from "../config/keys";
 
-import TransferEventModel from "../models/course/interfaces/TransferEvent";
-
-import Scrapper from "../services/Scrapper";
+import poller from "../services/Poller";
+import analyser from "../services/Analyser";
+import { throws } from "assert";
 
 const apikey = "7SQ3B3IQHGIJYM8MSDM7IVH98XJNG3I9VQ";
 const contractAddress = "0x8cf8238abf7b933Bf8BB5Ea2C7E4Be101c11de2A";
 
-const api = new Scrapper(apikey, contractAddress);
+//const poller = new Poller(apikey, contractAddress);
 
-const getTokenPrice = `https://api.pancakeswap.info/api/v2/tokens/${contractAddress}`;
+//const getTokenPrice = `https://api.pancakeswap.info/api/v2/tokens/${contractAddress}`;
 
 const app = express();
 let http = require("http").Server(app);
@@ -36,17 +36,21 @@ userRoutes(app);
 export default http.listen(PORT, async () => {
   console.log(`Server runs on ${PORT}`);
 
-  api.fetchWallets(wallets, TransferEventModel, (res) => {});
+  try {
+    const time = Date.now();
+    const results = await poller(apikey, contractAddress).fetchWallets(
+      wallets,
+      60
+    );
 
-  //await doc.save();
+    const forNotification = analyser(results).filterByCriteria();
 
-  // doc = await event.save();
+    console.log(forNotification);
 
-  //console.log(doc);
-
-  //const {
-  // data: {
-  //data: { price },
-  //},
-  //} = await axios.get(getTokenPrice);
+    //console.log(results);
+    //const t;
+    console.log(((Date.now() - time) / 1000).toString());
+  } catch (e) {
+    console.log(e);
+  }
 });
