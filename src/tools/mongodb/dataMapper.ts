@@ -1,10 +1,42 @@
-import TransferEventModel, {
+import {
+  TransferEventModel,
+  RecentTransactionModel,
   DBTransferEvent,
+  RecentTransaction,
 } from "../../models/TokenTransferEvent";
 
 export default {
   findTransferEvent: function (wallet: string) {
     return TransferEventModel.findOne({ wallet });
+  },
+
+  findRecentTransaction: function () {
+    return RecentTransactionModel.findOne({});
+  },
+
+  updateRecentTransaction: async function (
+    document: RecentTransaction | null,
+    lastBlock: string,
+    hash: string
+  ) {
+    try {
+      if (!document) {
+        document = new RecentTransactionModel({
+          block: lastBlock,
+          hash,
+        });
+        await document.save();
+        return;
+      }
+
+      if (document.block !== lastBlock)
+        await document.updateOne({
+          block: lastBlock,
+        });
+    } catch (e) {
+      console.log(e, `DataMapper, function:updateTransferEvent()`);
+      throw `${e} ,, DataMapper, function:updateTransferEvent()`;
+    }
   },
 
   updateTransferEvent: async function (

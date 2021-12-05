@@ -1,42 +1,14 @@
 import axios from "axios";
 import collect from "./Collector";
 
-import TransferEventModel, {
+import {
   TokenTransferEventResponse,
   TokenTransferEvent,
 } from "../models/TokenTransferEvent";
 
 import DataMapper from "../tools/mongodb/dataMapper";
 
-const mockFetch = () =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          blockNumber: "12991320",
-          timeStamp: "1637998791",
-          hash: "0x379b0727d1195f19900aafec02803310a1a63c1b7fbe1310fa0d6229481ada7f",
-          nonce: "680",
-          blockHash:
-            "0xb4983e37c7a8b48647acab621b00f7817169e16f908f1fa601461c3c9c32bcb7",
-          from: "0x0ed67daaacf97acf041cc65f04a632a8811347ff",
-          contractAddress: "0x8cf8238abf7b933bf8bb5ea2c7e4be101c11de2a",
-          to: "0xde5833f2bfde80aeaac054c8c0162ecc3e6f41f8",
-          value: "20000321634188225729746",
-          tokenName: "XP.network",
-          tokenSymbol: "XPNET",
-          tokenDecimal: "18",
-          transactionIndex: "52",
-          gas: "214338",
-          gasPrice: "6600000000",
-          gasUsed: "169658",
-          cumulativeGasUsed: "6694354",
-          input: "deprecated",
-          confirmations: "194419",
-        },
-      ]);
-    }, 0);
-  });
+import dataMapper from "../tools/mongodb/dataMapper";
 
 class Poller {
   apiKey: string;
@@ -45,6 +17,46 @@ class Poller {
   constructor(apiKey: string, contractAddress: string) {
     this.apiKey = apiKey;
     this.contractAddress = contractAddress;
+  }
+
+  private fetchTransactions(
+    start: string = "0",
+    offset: string,
+    page: string,
+    end: string = "999999999"
+  ) {
+    const uri = `https://api.bscscan.com/api?module=account&action=txlist&address=${this.contractAddress}&startblock=${start}&endblock=${end}&page=${page}&offset=${offset}&sort=desc&apikey=${this.apiKey}`;
+
+    return axios.get<any>(uri);
+  }
+
+  public async getLatestTransactions() {
+    console.log("0");
+    let doc = await DataMapper.findRecentTransaction();
+
+    const start = doc ? doc.block : "0";
+    const offset = doc ? "" : "1";
+    const page = doc ? "" : "1";
+
+    const {
+      data: { status, result },
+    } = await this.fetchTransactions(start, offset, page);
+
+    if (status === "1" && result.length > 0) {
+      console.log(result.length);
+      const { blockNumber: lastBlock, hash } = result[0];
+
+      await dataMapper.updateRecentTransaction(doc, lastBlock, hash);
+
+      result.hasNewTransfers = doc?.block === lastBlock ? false : true;
+
+      return result;
+    }
+  }
+
+  public getABI() {
+    const uri = `https://api.bscscan.com/api?module=contract&action=getabi&address=0x8cf8238abf7b933Bf8BB5Ea2C7E4Be101c11de2A&apikey=${this.apiKey}`;
+    return axios.get<any>(uri);
   }
 
   private fetchSingle = (
@@ -78,14 +90,15 @@ class Poller {
         setTimeout(async () => {
           let doc = await DataMapper.findTransferEvent(wallets[i]);
 
-          const start = doc ? doc.block : "0";
-          const offset = doc ? "" : "1";
-          const page = doc ? "" : "1";
+          const start = doc ? "0" : "0";
+          const offset = doc ? "" : "";
+          const page = doc ? "" : "";
 
           const {
             data: { result, status, message },
           } = await this.fetchSingle(wallets[i], start, offset, page);
-
+          console.log(result);
+          console.log(result.length);
           //const result: TokenTransferEvent[] & { hasNewTransfers: boolean } =
           //await mockFetch();
 

@@ -2,8 +2,8 @@
 
 export const MONGO_URI: string =
   process.env.MONGO_URI ||
-  "mongodb://localhost:27017/notifier" ||
-  "mongodb+srv://dor:jWaCcrXZ9KUGeoaZ@local.otjgm.mongodb.net/dor-flix?retryWrites=true&w=majority";
+  //"mongodb://localhost:27017/notifier" ||
+  "mongodb+srv://dor:jWaCcrXZ9KUGeoaZ@local.otjgm.mongodb.net/TESTDB";
 
 export const PORT: string = process.env.PORT || "3100";
 export const IS_PROD: boolean = process.env.NODE_ENV === "production";
@@ -49,7 +49,8 @@ export const MONGO_COLLECTIONS = {
 }; //
 
 export const wallets = [
-  "0x0Ed67dAaacf97acF041cc65f04A632a8811347fF",
+  "0x8cf8238abf7b933Bf8BB5Ea2C7E4Be101c11de2A",
+  /*"0x0Ed67dAaacf97acF041cc65f04A632a8811347fF",
   "0x6d16749cEfb3892A101631279A8fe7369A281D0E",
   "0x1D4389cf898F39A882AAF2FC7765069c556876F0",
   "0xD266d61ac22C2a2Ac2Dd832e79c14EA152c998D6",
@@ -107,5 +108,5 @@ export const wallets = [
   "0x7f71EDdD7ed083aEd2A49383fFAAe548444E4f1E",
   "0xDd071d33bfCf21286ac874C9617A9b350B3072c1",
   "0xa1d0B3B360595A82dbAAC1667535579bC568F8DD",
-  "0x81289cFbD5a01293391D1ab9dC46c5ee21371341",
+  "0x81289cFbD5a01293391D1ab9dC46c5ee21371341",*/
 ];

@@ -22,6 +22,37 @@ interface TokenTransferEvent {
   confirmations: string;
 }
 
+interface Transfer {
+  blockNumber: string;
+  timeStamp: string;
+  hash: string;
+  nonce: string;
+  blockHash: string;
+  transactionIndex: string;
+  from: string;
+  to: string;
+  value: string;
+  gas: string;
+  gasPrice: string;
+  isError: string;
+  txreceipt_status: string;
+  input: string | DecodedInput;
+  contractAddress: string;
+  cumulativeGasUsed: string;
+  gasUsed: string;
+  confirmations: string;
+  amount?: string;
+}
+
+interface DecodedInput {
+  name: string;
+  params: {
+    name: string;
+    value: string;
+    type: string;
+  }[];
+}
+
 interface TokenTransferEventResponse {
   data: {
     status: string;
@@ -35,12 +66,34 @@ interface DBTransferEvent extends Document {
   wallet: string;
 }
 
+interface RecentTransaction extends Document {
+  block: string;
+  hash: string;
+}
+
 const schema = new Schema<DBTransferEvent>({
   block: { type: String, required: true },
   wallet: { type: String, required: true },
 });
 
+const schemaTrx = new Schema<RecentTransaction>({
+  block: { type: String, required: true },
+  hash: { type: String, required: true },
+});
+
 const TransferEventModel = model<DBTransferEvent>("TransferEvent", schema);
 
-export default TransferEventModel;
-export type { TokenTransferEvent, TokenTransferEventResponse, DBTransferEvent };
+const RecentTransactionModel = model<RecentTransaction>(
+  "RecentTransaction",
+  schemaTrx
+);
+
+export { TransferEventModel, RecentTransactionModel };
+export type {
+  TokenTransferEvent,
+  TokenTransferEventResponse,
+  DBTransferEvent,
+  RecentTransaction,
+  Transfer,
+  DecodedInput,
+};
